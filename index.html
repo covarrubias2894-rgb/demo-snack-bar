@@ -1790,7 +1790,7 @@ function renderPanel(){
   const w = $("#wizard"), c = calcular(estado);
   const act = document.activeElement;
   let clave = "", ini = null, fin = null;
-  if (!entraPanel && act && w.contains(act)) {
+    if (!entraPanel && act && w.contains(act) && act.type !== "date" && act.tagName !== "SELECT") {   // nunca re-enfocar fecha/zona: reabre el selector del iPhone
     clave = claveFoco(act);
     try { ini = act.selectionStart; fin = act.selectionEnd; } catch (e) {}
   }
@@ -2029,11 +2029,13 @@ document.addEventListener("input", e => {
 document.addEventListener("change", e => {
   const el = e.target;
   if (el.id === "fInv") { fijarInvitados(el.value === "" ? estado.invitados : Number(el.value)); }
-  else if (el.id === "fZona") { estado.zona = el.value; cambio(); }
+    /* Zona y fecha NO repintan el panel: en iPhone, repintar el campo mientras el selector nativo
+     está abierto lo volvía a abrir una y otra vez. Solo se actualizan el estado y los totales. */
+  else if (el.id === "fZona") { estado.zona = el.value; tocado = true; renderTotales(); guardarBorrador(); }
   else if (el.id === "fFecha") {
-    if (el.value && el.value < fechaMinima()) { estado.fecha = ""; toast("Elige una fecha con al menos " + REGLAS.anticipacionDias + " días de anticipación"); }
+    if (el.value && el.value < fechaMinima()) { estado.fecha = ""; el.value = ""; toast("Elige una fecha con al menos " + REGLAS.anticipacionDias + " días de anticipación"); }
     else estado.fecha = el.value;
-    cambio();
+    tocado = true; guardarBorrador();
   }
 });
 document.addEventListener("keydown", e => {
